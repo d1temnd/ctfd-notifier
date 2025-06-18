@@ -44,7 +44,7 @@ def twitter_notify(
 
 
 def telegram_notify(solve, token: str, chat_id: int, message_thread_id: int):
-    text = _getText(solve)
+    text = _getText(solve, telegram=True)
     bot = Bot(token)
     run(bot.send_message(chat_id, text, message_thread_id))
 
