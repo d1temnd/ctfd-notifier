@@ -16,6 +16,7 @@ class DBUtils:
         {"key": "telegram_bot_token", "value": ""},
         {"key": "telegram_chat_id", "value": ""},
         {"key": "telegram_message_thread_id", "value": ""},
+        {"key": "telegram_template_message", "value": "<name> got first blood on <challenge> and is now in <place> place with <score> p"}
     ]
 
     @staticmethod
