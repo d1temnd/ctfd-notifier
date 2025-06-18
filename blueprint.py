@@ -1,5 +1,3 @@
-import requests as rq
-import tweepy
 from CTFd.utils.decorators import admins_only
 from flask import Blueprint, render_template, request
 
@@ -38,36 +36,11 @@ def load_bp(plugin_route):
 
 def test_config(config):
     errors = list()
+    error = False
     if "discord_notifier" in config:
         if config["discord_notifier"]:
             webhookurl = config["discord_webhook_url"]
-
-            if not webhookurl.startswith(
-                "https://discordapp.com/api/webhooks/"
-            ) and not webhookurl.startswith("https://discord.com/api/webhooks"):
-                errors.append("Invalid Webhook URL!")
-            else:
-                try:
-                    r = rq.get(webhookurl)
-                    if not r.status_code == 200:
-                        errors.append("Could not verify that the Webhook is working!")
-                except rq.exceptions.RequestException as e:
-                    errors.append("Invalid Webhook URL!")
-
-    if "twitter_notifier" in config:
-        if config["twitter_notifier"]:
-            try:
-                AUTH = tweepy.OAuthHandler(
-                    config.get("twitter_consumer_key"),
-                    config.get("twitter_consumer_secret"),
-                )
-                AUTH.set_access_token(
-                    config.get("twitter_access_token"),
-                    config.get("twitter_access_token_secret"),
-                )
-                API = tweepy.API(AUTH)
-                API.home_timeline()
-            except tweepy.TweepError:
-                errors.append("Invalid authentication Data!")
+            if error:
+                errors.append("test error")
 
     return errors

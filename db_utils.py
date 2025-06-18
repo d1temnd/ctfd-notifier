@@ -5,17 +5,14 @@ from .models import NotifierConfig
 
 class DBUtils:
     DEFAULT_CONFIG = [
-        {"key": "discord_notifier", "value": "false"},
-        {"key": "discord_webhook_url", "value": ""},
-        {"key": "twitter_notifier", "value": "false"},
-        {"key": "twitter_consumer_key", "value": ""},
-        {"key": "twitter_consumer_secret", "value": ""},
-        {"key": "twitter_access_token", "value": ""},
-        {"key": "twitter_access_token_secret", "value": ""},
-        {"key": "twitter_hashtags", "value": ""},
+        {"key": "rabbit_notifier", "value": "false"},
+        {"key": "rabbit_ip", "value": ""},
+        {"key": "rabbit_port", "value": ""},
+        {"key": "rabbit_topic", "value": ""},
         {"key": "telegram_bot_token", "value": ""},
         {"key": "telegram_chat_id", "value": ""},
         {"key": "telegram_message_thread_id", "value": ""},
+        {"key": "telegram_template_message", "value": "<name> got first blood on <challenge> and is now in <place> place with <score> p"}
     ]
 
     @staticmethod

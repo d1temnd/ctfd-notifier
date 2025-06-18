@@ -1,0 +1,44 @@
+<div role="tabpanel" class="tab-pane config-section" id="rabbit">
+    <form method="POST" autocomplete="off" class="w-100">
+        <div class="form-group">
+            <label>
+                Enable Rabbit Notifier
+            </label>
+            <select class="form-control custom-select" name="rabbit_notifier">
+                <option value="true" {% if config.get("rabbit_notifier") == "true" %}selected{% endif %}>True</option>
+                <option value="false" {% if config.get("rabbit_notifier") == "false" %}selected{% endif %}>False</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>
+                ip
+            </label>
+            <input type="text" class="form-control" id="rabbit-ip" name="rabbit_ip" value="{{ config.get("rabbit_ip") }}">
+        </div>
+
+        <div class="form-group">
+            <label>
+                port
+            </label>
+            <input type="number" class="form-control" id="rabbit-port" name="rabbit_port" value="{{ config.get("rabbit_port") }}">
+        </div>
+
+        <div class="form-group">
+            <label>
+                Topic
+            </label>
+            <input type="text" class="form-control" id="rabbit-topic" name="rabbit_topic" value="{{ config.get("rabbit_topic") }}">
+        </div>
+
+        <!-- <div class="form-group">
+            <label>
+                Access Token Secret
+            </label>
+            <input type="text" class="form-control" id="twitter-access-token-secret" name="twitter_access_token_secret" value="{{ config.get("twitter_access_token_secret") }}">
+        </div> -->
+
+
+        <input type="hidden" value="{{ Session.nonce }}" name="nonce" id="nonce"/>
+        <button type="submit" class="btn btn-md btn-primary float-right">Update</button>
+    </form>
+</div>

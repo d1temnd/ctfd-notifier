@@ -1,9 +1,7 @@
 import json
 from asyncio import run
-
+from pika import BlockingConnection, ConnectionParameters
 import CTFd.cache as cache
-import requests as rq
-import tweepy
 from aiogram import Bot
 from CTFd.models import Challenges, Solves, Teams, Users
 from CTFd.utils.config import is_teams_mode
@@ -13,34 +11,28 @@ from ...utils.modes import get_model
 from .db_utils import DBUtils
 
 
-def discord_notify(solve, webhookurl):
-    text = _getText(solve)
-
-    embed = {"title": "First Blood!", "color": 15158332, "description": text}
-
-    data = {"embeds": [embed]}
-
-    try:
-        rq.post(
-            webhookurl,
-            data=json.dumps(data),
-            headers={"Content-Type": "application/json"},
-        )
-    except rq.exceptions.RequestException as e:
-        print(e)
 
 
-def twitter_notify(
-    solve, consumer_key, consumer_secret, access_token, access_token_secret, hashtags
+
+def rabbit_notify(
+    solve, rabbit_ip, rabbit_port, rabbit_topic
 ):
-    text = _getText(solve, hashtags)
-    try:
-        AUTH = tweepy.OAuthHandler(consumer_key, consumer_secret)
-        AUTH.set_access_token(access_token, access_token_secret)
-        API = tweepy.API(AUTH)
-        API.update_status(status=text)
-    except tweepy.TweepError as e:
-        print(e)
+    connection_params = ConnectionParameters(
+        host=str(rabbit_ip), 
+        port=int(rabbit_port)
+    )
+    json_text: json = _getText(solve, True)
+
+    with BlockingConnection(connection_params) as conn:
+        ch = conn.channel()
+        ch.queue_declare(queue=rabbit_topic, durable=True)
+
+        ch.basic_publish(
+            exchange='',
+            routing_key=rabbit_topic,
+            body=json.dumps(json_text),
+            properties=None  # можно сюда добавить delivery_mode=2 для персистентности
+        )
 
 
 def telegram_notify(solve, token: str, chat_id: int, message_thread_id: int):
@@ -54,17 +46,13 @@ def on_solve(mapper, conn, solve):
     solves = _getSolves(solve.challenge_id)
 
     if solves == 1:
-        if config.get("discord_notifier") == "true":
-            discord_notify(solve, config.get("discord_webhook_url"))
 
-        if config.get("twitter_notifier") == "true":
-            twitter_notify(
+        if config.get("rabbit_notifier") == "true":
+            rabbit_notify(
                 solve,
-                config.get("twitter_consumer_key"),
-                config.get("twitter_consumer_secret"),
-                config.get("twitter_access_token"),
-                config.get("twitter_access_token_secret"),
-                config.get("twitter_hashtags"),
+                config.get("rabbit_ip"),
+                config.get("rabbit_port"),
+                config.get("rabbit_topic"),
             )
 
         if config.get("telegram_notifier") == "true":
@@ -107,13 +95,14 @@ def _getTeam(team_id):
     return team
 
 
-def _getText(solve, hashtags=""):
+def _getText(solve, json_r=False):
     name = ""
     score = 0
     place = 0
     cache.clear_standings()
     user = _getUser(solve.user_id)
     challenge = _getChallenge(solve.challenge_id)
+    config = DBUtils.get_config()
 
     if is_teams_mode():
         team = _getTeam(user.team_id)
@@ -125,10 +114,15 @@ def _getText(solve, hashtags=""):
         score = user.get_score()
         place = user.get_place()
 
-    if not hashtags == "":
-        text = f"{name} got first blood on {challenge.name} and is now in {place} place with {score} points! {hashtags}"
+    if not json_r:
+        
+        text = str(config.get("telegram_template_message"))\
+            .replace("<name>", name)\
+            .replace("<challenge>", challenge.name)\
+            .replace("<place>", str(place))\
+            .replace("<score>", str(score))
     else:
-        text = f"{name} got first blood on {challenge.name} and is now in {place} place with {score} points!"
+        text = {"rase": "ctfd", "name": name, "task": challenge.name}
 
     return text
 
